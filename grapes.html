@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Grapes Crop Intelligence</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root{
+--bg-light:#f0f8f5;
+--bg-dark:#1a1a1a;
+--card-light:#ffffff;
+--card-dark:#2a2a2a;
+--primary:#1b4332;
+--secondary:#2d6a4f;
+--accent:#ffd166;
+--text-light:#1b4332;
+--text-dark:#f0f0f0;
+--shadow:0 8px 25px rgba(0,0,0,0.08);
+}
+
+body{
+margin:0;
+font-family:'Poppins',sans-serif;
+background:var(--bg-light);
+color:var(--text-light);
+transition:0.5s;
+scroll-behavior:smooth;
+}
+
+/* DARK MODE */
+body.dark{
+background:var(--bg-dark);
+color:var(--text-dark);
+}
+
+/* HEADER */
+header{
+padding:25px;
+text-align:center;
+box-shadow:var(--shadow);
+background:linear-gradient(90deg,var(--primary),var(--secondary));
+color:white;
+position:relative;
+}
+
+h1{
+margin:0;
+font-size:32px;
+}
+
+.subtitle{
+opacity:0.9;
+margin-top:5px;
+font-weight:400;
+}
+
+/* TOGGLE BUTTON */
+.toggle-btn{
+position:absolute;
+top:20px;
+right:20px;
+background:var(--accent);
+border:none;
+border-radius:20px;
+padding:8px 16px;
+color:white;
+font-weight:600;
+cursor:pointer;
+transition:0.3s;
+}
+.toggle-btn:hover{
+background:#e6ac00;
+}
+
+/* SECTION */
+.section{
+padding:40px 10%;
+}
+
+/* CARD */
+.card{
+background:var(--card-light);
+padding:25px;
+border-radius:20px;
+margin-bottom:30px;
+box-shadow:var(--shadow);
+transition:0.4s;
+}
+
+body.dark .card{
+background:var(--card-dark);
+}
+
+.card:hover{
+transform:translateY(-5px);
+box-shadow:0 15px 40px rgba(0,0,0,0.5);
+}
+
+/* INPUT & BUTTONS */
+input{
+padding:12px;
+margin:6px;
+border-radius:8px;
+border:1px solid #cce5d5;
+width:180px;
+font-size:14px;
+}
+body.dark input{border:1px solid #555; background:#333; color:white;}
+
+button{
+padding:12px 25px;
+background:var(--accent);
+color:white;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:600;
+margin-top:10px;
+transition:0.3s;
+}
+
+button:hover{
+background:#e6ac00;
+}
+
+/* SCORE CIRCLE */
+.score-circle{
+width:160px;
+height:160px;
+border-radius:50%;
+background:conic-gradient(var(--secondary) 0deg,#e0e0e0 0deg);
+display:flex;
+align-items:center;
+justify-content:center;
+margin:20px auto;
+font-size:28px;
+font-weight:bold;
+color:var(--primary);
+box-shadow:var(--shadow);
+transition:0.5s;
+}
+
+/* PROGRESS BAR */
+.progress-bar{
+height:12px;
+background:#e0e0e0;
+border-radius:10px;
+overflow:hidden;
+margin-top:15px;
+}
+body.dark .progress-bar{background:#555;}
+
+.progress{
+height:100%;
+width:0%;
+background:var(--secondary);
+transition:1s;
+}
+
+/* ALERT */
+.alert{
+margin-top:15px;
+font-weight:600;
+font-size:16px;
+}
+
+/* CHART */
+#graphCard{
+padding:20px;
+}
+
+/* FOOTER */
+footer{
+background:var(--primary);
+color:white;
+padding:25px;
+text-align:center;
+margin-top:40px;
+}
+
+/* MEDIA */
+@media(max-width:768px){
+.section{padding:30px 5%;}
+input{width:100%;}
+}
+</style>
+</head>
+<body>
+
+<header>
+<h1>🍇 Smart Grapes Crop Intelligence</h1>
+<p class="subtitle">AI + Sensor Based Vineyard Monitoring | Nashik Region</p>
+<button class="toggle-btn" onclick="toggleMode()">🌙 Dark/Light</button>
+</header>
+
+<div class="section">
+
+<!-- SENSOR INPUT -->
+<div class="card">
+<h2>🌦 Live Field Monitoring</h2>
+<input type="number" id="humidity" placeholder="Humidity (%)">
+<input type="number" id="temperature" placeholder="Temperature (°C)">
+<input type="number" id="soil" placeholder="Soil Moisture (%)">
+<br>
+<button onclick="analyze()">Run AI Prediction</button>
+<div id="alert" class="alert"></div>
+</div>
+
+<!-- AI SCORE -->
+<div class="card">
+<h2>🤖 Crop Health Score</h2>
+<div class="score-circle" id="scoreCircle">0%</div>
+<p id="result" style="text-align:center;font-weight:600;"></p>
+<div class="progress-bar">
+<div class="progress" id="progress"></div>
+</div>
+</div>
+
+<!-- STAGE ADVISORY -->
+<div class="card">
+<h2>🌱 Growth Stage Advisory</h2>
+<p id="stageInfo">Enter field data to receive smart advisory.</p>
+</div>
+
+<!-- REAL-TIME GRAPH -->
+<div class="card" id="graphCard">
+<h2>📊 Growth Trend (Simulated)</h2>
+<canvas id="growthChart" height="200"></canvas>
+</div>
+
+<!-- IMAGE -->
+<div class="card">
+<h2>🍇 Vineyard Field</h2>
+<img src="https://images.unsplash.com/photo-1524593119773-9e8bde4e0a83" alt="Grapes Field" style="width:100%; border-radius:15px; box-shadow:0 10px 25px rgba(0,0,0,0.3);">
+</div>
+
+</div>
+
+<footer>
+AI Powered Grapes Advisory System | Climate Smart Agriculture 🌍
+</footer>
+
+<script>
+// DARK/LIGHT TOGGLE
+function toggleMode(){
+document.body.classList.toggle("dark");
+}
+
+// AI ANALYSIS
+function analyze(){
+let h=parseInt(document.getElementById("humidity").value);
+let t=parseInt(document.getElementById("temperature").value);
+let s=parseInt(document.getElementById("soil").value);
+
+let score=100;
+let alertBox=document.getElementById("alert");
+
+if(h>80){ score-=20; alertBox.innerHTML="⚠ High Humidity → Downy Mildew Risk"; alertBox.style.color="orange"; }
+else if(t>36){ score-=25; alertBox.innerHTML="🔥 Heat Stress Alert"; alertBox.style.color="red"; }
+else if(s<30){ score-=20; alertBox.innerHTML="💧 Low Soil Moisture"; alertBox.style.color="blue"; }
+else{ alertBox.innerHTML="✅ Field Conditions Normal"; alertBox.style.color="green"; }
+
+if(score<0) score=0;
+
+document.getElementById("scoreCircle").innerText=score+"%";
+document.getElementById("scoreCircle").style.background="conic-gradient(#2d6a4f "+(score*3.6)+"deg,#e0e0e0 0deg)";
+document.getElementById("progress").style.width=score+"%";
+
+let stage="", advisory="";
+if(t<25){ stage="🌱 Pruning & Dormancy (Week 1–3)"; advisory="Vine cutting & reshaping | FYM + SSP + Potash | Mealybug Monitoring"; }
+else if(t>=25 && t<=32){ stage="🌿 Bud Burst & Shoot Growth (Week 4–6)"; advisory="NPK 19:19:19 | Thrips & Mildew Monitoring | Leaf Wetness Sensor Active"; }
+else if(t>32 && t<=36){ stage="🌸 Flowering (Week 7–8)"; advisory="Controlled Irrigation | Downy Mildew Risk | Preventive Spray"; }
+else{ stage="🍇 Berry Formation & Ripening (Week 9–18)"; advisory="High Potassium Feeding | Fruit Borer Monitoring | Rain & Heat Alerts"; }
+
+document.getElementById("stageInfo").innerHTML="<b>"+stage+"</b><br><br>"+advisory;
+
+// Update chart dynamically
+addChartData(score);
+}
+
+// CHART.JS - Real-time simulation
+const ctx = document.getElementById('growthChart').getContext('2d');
+const growthChart = new Chart(ctx, {
+type:'line',
+data:{
+labels:['Week1','Week2','Week3','Week4','Week5','Week6'],
+datasets:[{
+label:'Crop Health Score',
+data:[0,0,0,0,0,0],
+borderColor:'#2d6a4f',
+backgroundColor:'rgba(45,106,79,0.2)',
+tension:0.4,
+fill:true,
+}]
+},
+options:{
+responsive:true,
+plugins:{legend:{display:true}},
+scales:{y:{beginAtZero:true, max:100}}
+}
+});
+
+function addChartData(score){
+let data=growthChart.data.datasets[0].data;
+data.push(score);
+if(data.length>6) data.shift();
+growthChart.update();
+}
+</script>
+</body>
+</html>

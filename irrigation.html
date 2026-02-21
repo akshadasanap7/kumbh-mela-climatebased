@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgroSmart Irrigation AI</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+
+/* ================= THEME ================= */
+
+body{
+background:#f4f9f4;
+font-family:'Segoe UI',sans-serif;
+color:#2e7d32;
+}
+
+.navbar{
+background:white;
+box-shadow:0 2px 10px rgba(0,0,0,0.1);
+}
+
+.navbar-brand{
+color:#1b5e20 !important;
+}
+
+.card{
+background:white;
+border-radius:15px;
+border:none;
+box-shadow:0 4px 15px rgba(0,0,0,0.08);
+}
+
+.card h6{
+color:#1b5e20;
+font-weight:600;
+}
+
+.status-green{color:#2e7d32;font-weight:bold;}
+.status-yellow{color:#f9a825;font-weight:bold;}
+.status-red{color:#d32f2f;font-weight:bold;}
+
+#alertBanner{
+display:none;
+padding:12px;
+text-align:center;
+font-weight:bold;
+background:#d32f2f;
+color:white;
+border-radius:8px;
+margin-bottom:15px;
+}
+
+.analysis-box{
+background:#e8f5e9;
+padding:15px;
+border-radius:10px;
+margin-top:15px;
+color:#1b5e20;
+}
+
+.progress{
+height:20px;
+background:#e0e0e0;
+}
+
+.progress-bar{
+font-weight:bold;
+}
+
+.btn-dark{
+background:#2e7d32;
+border:none;
+}
+
+.btn-dark:hover{
+background:#1b5e20;
+}
+
+canvas{
+background:white;
+border-radius:10px;
+padding:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg">
+<div class="container">
+<span class="navbar-brand fw-bold">🌾 AgroSmart Irrigation AI Dashboard</span>
+
+<select id="cropSelect" class="form-select w-auto border-success">
+<option value="wheat">🌾 Wheat</option>
+<option value="sugarcane">🌿 Sugarcane</option>
+<option value="grapes">🍇 Grapes</option>
+<option value="cotton">🌼 Cotton</option>
+</select>
+
+</div>
+</nav>
+
+<div class="container mt-4">
+
+<div id="alertBanner"></div>
+
+<div class="row g-3">
+
+<div class="col-md-3">
+<div class="card p-3 text-center">
+<h6>🌱 Soil Moisture</h6>
+<h4 id="moistureValue">--</h4>
+</div>
+</div>
+
+<div class="col-md-3">
+<div class="card p-3 text-center">
+<h6>🌡 Temperature</h6>
+<h4 id="temperatureValue">--</h4>
+</div>
+</div>
+
+<div class="col-md-3">
+<div class="card p-3 text-center">
+<h6>💧 Humidity</h6>
+<h4 id="humidityValue">--</h4>
+</div>
+</div>
+
+<div class="col-md-3">
+<div class="card p-3 text-center">
+<h6>🔥 Heat Index</h6>
+<h4 id="heatIndexValue">--</h4>
+</div>
+</div>
+
+</div>
+
+<!-- AI Recommendation -->
+<div class="card mt-4 p-4">
+<h4 class="text-success">🧠 AI Irrigation Recommendation</h4>
+<p id="recommendation">Loading...</p>
+<p>Status: <span id="riskIndicator">--</span></p>
+
+<div class="analysis-box">
+<h6>📊 Condition Analysis</h6>
+<p id="soilStatus"></p>
+<p id="heatStatus"></p>
+
+<label class="fw-bold">Irrigation Need Level</label>
+<div class="progress">
+<div id="irrigationBar" class="progress-bar bg-success" style="width:0%">0%</div>
+</div>
+</div>
+
+<button class="btn btn-dark mt-3" onclick="downloadReport()">📄 Download Report</button>
+</div>
+
+<!-- Chart -->
+<div class="card mt-4 p-4">
+<h5 class="text-success">📈 Water Usage Trend</h5>
+<canvas id="waterChart"></canvas>
+</div>
+
+</div>
+
+<script>
+
+let totalWater=0;
+let waterData=[];
+let labels=[];
+
+// Simulated Data
+function fetchWeather(){
+
+let temp=Math.floor(Math.random()*10)+30;
+let humidity=Math.floor(Math.random()*40)+40;
+let rain=Math.floor(Math.random()*5);
+let moisture=Math.floor(Math.random()*40)+20;
+let heatIndex=(temp+(0.33*humidity)-4);
+
+document.getElementById("temperatureValue").innerText=temp+" °C";
+document.getElementById("humidityValue").innerText=humidity+" %";
+document.getElementById("moistureValue").innerText=moisture+" %";
+document.getElementById("heatIndexValue").innerText=heatIndex.toFixed(1)+" °C";
+
+analyseConditions(moisture,temp,humidity,heatIndex);
+mlPrediction(moisture,temp,humidity,rain,heatIndex);
+updateWaterUsage();
+}
+
+// Crop factor
+function cropFactor(){
+let crop=document.getElementById("cropSelect").value;
+if(crop=="sugarcane") return 1.4;
+if(crop=="grapes") return 1.2;
+if(crop=="cotton") return 1.1;
+return 1;
+}
+
+// Condition Analysis
+function analyseConditions(moisture,temp,humidity,heatIndex){
+
+let soilStatus="";
+if(moisture<30) soilStatus="🌱 Soil is DRY";
+else if(moisture<50) soilStatus="🌿 Soil Moisture is OPTIMAL";
+else soilStatus="💧 Soil is WET";
+
+let heatStatus="";
+if(heatIndex>45) heatStatus="🔥 Extreme Heat Stress";
+else if(heatIndex>38) heatStatus="🌡 Moderate Heat Stress";
+else heatStatus="✅ Normal Temperature Range";
+
+document.getElementById("soilStatus").innerText=soilStatus;
+document.getElementById("heatStatus").innerText=heatStatus;
+}
+
+// ML Prediction
+function mlPrediction(moisture,temp,humidity,rain,heatIndex){
+
+let score=(0.4*moisture)-(0.5*temp)+(0.3*humidity);
+score*=cropFactor();
+
+let irrigationNeed=Math.max(0,Math.min(100,50-score));
+
+let bar=document.getElementById("irrigationBar");
+bar.style.width=irrigationNeed+"%";
+bar.innerText=Math.floor(irrigationNeed)+"%";
+
+let recommendation,status;
+
+if(irrigationNeed>70 || heatIndex>45){
+recommendation="⚠ Immediate Irrigation Required";
+status="RED";
+showAlert("High Risk: Irrigate Immediately");
+}
+else if(irrigationNeed>40){
+recommendation="Moderate Irrigation Recommended";
+status="YELLOW";
+showAlert("Medium Risk: Monitor Closely");
+}
+else{
+recommendation="No Irrigation Needed";
+status="GREEN";
+hideAlert();
+}
+
+document.getElementById("recommendation").innerText=recommendation;
+document.getElementById("riskIndicator").innerText=status;
+document.getElementById("riskIndicator").className=
+status=="RED"?"status-red":
+status=="YELLOW"?"status-yellow":"status-green";
+}
+
+// Alert
+function showAlert(msg){
+let banner=document.getElementById("alertBanner");
+banner.style.display="block";
+banner.innerText=msg;
+}
+
+function hideAlert(){
+document.getElementById("alertBanner").style.display="none";
+}
+
+// Water tracking
+function updateWaterUsage(){
+let used=Math.floor(Math.random()*20)+10;
+totalWater+=used;
+
+waterData.push(totalWater);
+labels.push(new Date().toLocaleTimeString());
+
+if(waterData.length>10){
+waterData.shift();
+labels.shift();
+}
+chart.update();
+}
+
+// Chart
+const ctx=document.getElementById("waterChart").getContext("2d");
+const chart=new Chart(ctx,{
+type:"line",
+data:{
+labels:labels,
+datasets:[{
+label:"Water Usage (Litres)",
+data:waterData,
+borderColor:"#2e7d32",
+borderWidth:3,
+tension:0.4
+}]
+},
+options:{responsive:true}
+});
+
+// PDF
+function downloadReport(){
+const { jsPDF } = window.jspdf;
+const doc = new jsPDF();
+doc.text("AgroSmart Irrigation Report",20,20);
+doc.text("Total Water Used: "+totalWater+" L",20,40);
+doc.text("Generated on: "+new Date().toLocaleString(),20,60);
+doc.save("Agro_Report.pdf");
+}
+
+// Auto refresh
+setInterval(fetchWeather,6000);
+fetchWeather();
+
+</script>
+
+</body>
+</html>

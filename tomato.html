@@ -181,6 +181,84 @@ padding:25px;
 text-align:center;
 margin-top:40px;
 }
+/* ===== MOBILE RESPONSIVE ===== */
+@media(max-width:768px){
+
+    /* Stack sidebar on top */
+    body{
+        flex-direction:column;
+    }
+
+    .sidebar{
+        width:100%;
+        height:auto;
+        position:relative;
+        padding-top:20px;
+    }
+
+    .sidebar h2{
+        font-size:20px;
+        margin-bottom:20px;
+    }
+
+    .sidebar a{
+        padding:12px 15px;
+        font-size:14px;
+    }
+
+    /* Main content full width */
+    .main{
+        margin-left:0;
+        padding:15px;
+    }
+
+    /* Stack crop cards vertically */
+    .crop-container{
+        flex-direction:column;
+        gap:15px;
+    }
+
+    .crop-link{
+        min-width:100%;
+    }
+
+    /* Adjust chat panel for smaller screens */
+    #chatPanel{
+        width:90%;
+        bottom:80px;
+        right:5%;
+        max-height:70vh;
+        padding:10px;
+    }
+
+    .chat-box{
+        height:200px; /* smaller height on mobile */
+    }
+
+    .chat-input input{
+        font-size:13px;
+        padding:8px;
+    }
+
+    .chat-input button{
+        padding:8px 10px;
+        font-size:13px;
+    }
+
+    /* Floating chat button smaller on mobile */
+    #chatButton{
+        width:50px;
+        height:50px;
+        font-size:24px;
+        bottom:15px;
+        right:15px;
+    }
+
+    /* Cards smaller padding */
+    .card{
+        padding:15px;
+    }
+}
 
 /* MEDIA */
 @media(max-width:768px){

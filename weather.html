@@ -9,33 +9,17 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-
-/* ===== DEFAULT AGRICULTURE THEME ===== */
 body{
 transition:0.5s;
 background:linear-gradient(135deg,#e8f5e9,#c8e6c9);
 font-family:'Segoe UI',sans-serif;
 }
-
-.navbar{
-background:#2e7d32 !important;
-transition:0.5s;
-}
-
-.card{
-border:none;
-border-radius:15px;
-background:white;
-box-shadow:0 6px 20px rgba(0,0,0,0.1);
-transition:0.4s;
-}
-
+.navbar{background:#2e7d32 !important; transition:0.5s;}
+.card{border:none; border-radius:15px; background:white; box-shadow:0 6px 20px rgba(0,0,0,0.1); transition:0.4s;}
 .card:hover{transform:translateY(-5px);}
-
 .risk-low { color:#2e7d32; font-weight:bold; }
 .risk-medium { color:#f9a825; font-weight:bold; }
 .risk-high { color:#d32f2f; font-weight:bold; }
-
 #alertBanner{
 display:none;
 padding:12px;
@@ -46,127 +30,26 @@ margin-bottom:15px;
 color:white;
 animation:blink 1s infinite alternate;
 }
+@keyframes blink{from{opacity:1;}to{opacity:0.6;}}
 
-@keyframes blink{
-from{opacity:1;}
-to{opacity:0.6;}
-}
+/* THEMES */
+body.summer{background:linear-gradient(135deg,#ffcc80,#ff7043);}
+body.summer .navbar{background:#e65100 !important;}
+body.rain{background:linear-gradient(135deg,#90caf9,#1976d2);}
+body.rain .navbar{background:#0d47a1 !important;}
+body.winter{background:linear-gradient(135deg,#e1f5fe,#81d4fa);}
+body.winter .navbar{background:#0277bd !important;}
+body.dark-mode{background:#121212;color:white;}
+body.dark-mode .card{background:#1e1e1e;color:white;}
 
-/* ===== SUMMER THEME ===== */
-body.summer{
-background:linear-gradient(135deg,#ffcc80,#ff7043);
-}
-body.summer .navbar{
-background:#e65100 !important;
-}
-
-/* ===== RAIN THEME ===== */
-body.rain{
-background:linear-gradient(135deg,#90caf9,#1976d2);
-}
-body.rain .navbar{
-background:#0d47a1 !important;
-}
-
-/* ===== WINTER THEME ===== */
-body.winter{
-background:linear-gradient(135deg,#e1f5fe,#81d4fa);
-}
-body.winter .navbar{
-background:#0277bd !important;
-}
-
-/* ===== DARK MODE ===== */
-body.dark-mode{
-background:#121212;
-color:white;
-}
-body.dark-mode .card{
-background:#1e1e1e;
-color:white;
-}
-/* ===== MOBILE RESPONSIVE ===== */
+/* MOBILE */
 @media(max-width:768px){
-
-    /* Stack sidebar on top */
-    body{
-        flex-direction:column;
-    }
-
-    .sidebar{
-        width:100%;
-        height:auto;
-        position:relative;
-        padding-top:20px;
-    }
-
-    .sidebar h2{
-        font-size:20px;
-        margin-bottom:20px;
-    }
-
-    .sidebar a{
-        padding:12px 15px;
-        font-size:14px;
-    }
-
-    /* Main content full width */
-    .main{
-        margin-left:0;
-        padding:15px;
-    }
-
-    /* Stack crop cards vertically */
-    .crop-container{
-        flex-direction:column;
-        gap:15px;
-    }
-
-    .crop-link{
-        min-width:100%;
-    }
-
-    /* Adjust chat panel for smaller screens */
-    #chatPanel{
-        width:90%;
-        bottom:80px;
-        right:5%;
-        max-height:70vh;
-        padding:10px;
-    }
-
-    .chat-box{
-        height:200px; /* smaller height on mobile */
-    }
-
-    .chat-input input{
-        font-size:13px;
-        padding:8px;
-    }
-
-    .chat-input button{
-        padding:8px 10px;
-        font-size:13px;
-    }
-
-    /* Floating chat button smaller on mobile */
-    #chatButton{
-        width:50px;
-        height:50px;
-        font-size:24px;
-        bottom:15px;
-        right:15px;
-    }
-
-    /* Cards smaller padding */
-    .card{
-        padding:15px;
-    }
+body{flex-direction:column;}
+.main{padding:15px;}
+.card{padding:15px;}
 }
-
 </style>
 </head>
-
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-dark">
@@ -177,31 +60,24 @@ color:white;
 </nav>
 
 <div class="container mt-4">
-
 <div id="alertBanner"></div>
 
 <!-- Weather Stats -->
 <div class="row g-4">
-
 <div class="col-md-3"><div class="card p-3 text-center">
 <h6>🌡 Temperature</h6><h4 id="temp">-- °C</h4></div></div>
-
 <div class="col-md-3"><div class="card p-3 text-center">
 <h6>💧 Humidity</h6><h4 id="humidity">-- %</h4></div></div>
-
 <div class="col-md-3"><div class="card p-3 text-center">
 <h6>🌧 Rain</h6><h4 id="rain">-- %</h4></div></div>
-
 <div class="col-md-3"><div class="card p-3 text-center">
 <h6>☀ UV Index</h6><h4 id="uv">--</h4></div></div>
-
 </div>
 
 <!-- AI Risk -->
 <div class="card mt-4 p-4">
 <h4>⚠ Climate Risk Assessment</h4>
 <p>Risk Level: <span id="riskLevel">--</span></p>
-
 <label>Risk Score</label>
 <div class="progress">
 <div id="riskBar" class="progress-bar bg-success" style="width:0%">0%</div>
@@ -217,15 +93,11 @@ color:white;
 </div>
 
 <script>
-
 // Dark Mode
-function toggleDark(){
-document.body.classList.toggle("dark-mode");
-}
+function toggleDark(){document.body.classList.toggle("dark-mode");}
 
 // Weather Simulation
 function fetchWeather(){
-
 let temp=Math.floor(Math.random()*20)+20;
 let humidity=Math.floor(Math.random()*50)+40;
 let rain=Math.floor(Math.random()*100);
@@ -241,48 +113,26 @@ climateAI(temp,humidity,rain,uv);
 updateChart(temp);
 }
 
-// ===== AUTO WEATHER THEME ENGINE =====
+// Weather Theme Engine
 function applyWeatherTheme(temp,rain){
-
 document.body.classList.remove("summer","rain","winter");
-
-if(temp>38){
-document.body.classList.add("summer");
-}
-else if(rain>70){
-document.body.classList.add("rain");
-}
-else if(temp<20){
-document.body.classList.add("winter");
-}
+if(temp>38) document.body.classList.add("summer");
+else if(rain>70) document.body.classList.add("rain");
+else if(temp<20) document.body.classList.add("winter");
 }
 
-// ===== AI LOGIC =====
+// AI Logic & Alerts
 function climateAI(temp,humidity,rain,uv){
-
 let score=0;
-
 if(temp>38) score+=30;
 if(rain>70) score+=25;
 if(humidity>85) score+=15;
 if(uv>8) score+=10;
 
-let risk="LOW";
-let className="risk-low";
-
-if(score>60){
-risk="HIGH";
-className="risk-high";
-showAlert("🚨 Extreme Weather Alert!","#d32f2f");
-}
-else if(score>30){
-risk="MEDIUM";
-className="risk-medium";
-showAlert("⚠ Moderate Weather Risk","#f9a825");
-}
-else{
-hideAlert();
-}
+let risk="LOW", className="risk-low";
+if(score>60){risk="HIGH";className="risk-high";showAlert("🚨 Extreme Weather Alert!","#d32f2f");}
+else if(score>30){risk="MEDIUM";className="risk-medium";showAlert("⚠ Moderate Weather Risk","#f9a825");}
+else hideAlert();
 
 document.getElementById("riskLevel").innerText=risk;
 document.getElementById("riskLevel").className=className;
@@ -292,51 +142,32 @@ bar.style.width=score+"%";
 bar.innerText=score+"%";
 }
 
-// Alert
+// Alerts
 function showAlert(message,color){
 let banner=document.getElementById("alertBanner");
 banner.style.display="block";
 banner.style.background=color;
 banner.innerText=message;
 }
-function hideAlert(){
-document.getElementById("alertBanner").style.display="none";
-}
+function hideAlert(){document.getElementById("alertBanner").style.display="none";}
 
 // Chart
 const ctx=document.getElementById("forecastChart").getContext("2d");
-let tempData=[];
-let labels=[];
-
+let tempData=[]; let labels=[];
 const forecastChart=new Chart(ctx,{
 type:"line",
-data:{
-labels:labels,
-datasets:[{
-label:"Temperature Trend",
-data:tempData,
-borderColor:"#2e7d32",
-borderWidth:3,
-tension:0.4
-}]
-},
+data:{labels:labels,datasets:[{label:"Temperature Trend",data:tempData,borderColor:"#2e7d32",borderWidth:3,tension:0.4}]},
 options:{responsive:true}
 });
-
 function updateChart(value){
-if(tempData.length>7){
-tempData.shift();
-labels.shift();
-}
-tempData.push(value);
-labels.push(new Date().toLocaleTimeString());
+if(tempData.length>7){tempData.shift(); labels.shift();}
+tempData.push(value); labels.push(new Date().toLocaleTimeString());
 forecastChart.update();
 }
 
 // Auto Refresh
 setInterval(fetchWeather,5000);
 fetchWeather();
-
 </script>
 
 </body>

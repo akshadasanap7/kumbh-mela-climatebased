@@ -2,822 +2,284 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AgriAI Pro | Climate Smart Agriculture</title>
+<title>AgriAI Pro | Crop Planning</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <style>
+body { margin:0; font-family:'Segoe UI',sans-serif; background:linear-gradient(135deg,#0f2027,#203a43,#2c5364); color:white; transition:0.4s; }
+.light-theme { background:#f1f5f9; color:#111; }
+.green-theme { background:linear-gradient(-45deg,#065f46,#10b981,#022c22,#134e4a); background-size:400% 400%; animation:gradientMove 12s ease infinite; }
+@keyframes gradientMove { 0%{background-position:0% 50%;} 50%{background-position:100% 50%;} 100%{background-position:0% 50%;} }
 
-/* ================== THEMES ================== */
+.sidebar { height:100vh; width:230px; position:fixed; background:linear-gradient(180deg,#064e3b,#022c22); padding:20px; overflow:auto; }
+.sidebar a { display:block; color:#cbd5e1; padding:10px; text-decoration:none; border-radius:8px; margin-bottom:5px; transition:0.3s; }
+.sidebar a:hover { background:#065f46; color:#22c55e; }
+.content { margin-left:250px; padding:30px; }
 
-body{
-margin:0;
-font-family:'Poppins',sans-serif;
-transition:0.4s;
-background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-color:white;
-}
+.card-custom { background:rgba(255,255,255,0.08); backdrop-filter:blur(14px); padding:20px; border-radius:18px; margin-bottom:20px; box-shadow:0 8px 25px rgba(0,0,0,0.3); transition:0.3s; animation:fadeUp 0.5s ease; }
+.card-custom:hover { background:rgba(255,255,255,0.12); }
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
+.light-theme .card-custom { background:white; color:#111; box-shadow:0 4px 20px rgba(0,0,0,0.1); }
 
-.light-theme{
-background:#f1f5f9;
-color:#111;
-}
+.form-control, .form-select { background:rgba(255,255,255,0.9); color:#333; border-radius:10px; }
+.light-theme .form-control, .light-theme .form-select { background:white; }
 
-.green-theme{
-background:linear-gradient(-45deg,#065f46,#10b981,#022c22,#134e4a);
-background-size:400% 400%;
-animation:gradientMove 12s ease infinite;
-}
+.btn-plan { background:linear-gradient(45deg,#22c55e,#16a34a); border:none; color:white; padding:12px 25px; border-radius:10px; font-weight:600; transition:0.3s; }
+.btn-plan:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(34,197,94,0.4); }
 
-@keyframes gradientMove{
-0%{background-position:0% 50%;}
-50%{background-position:100% 50%;}
-100%{background-position:0% 50%;}
-}
+.risk-circle { width:150px; height:150px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:22px; margin:auto; background:conic-gradient(#22c55e 0deg,#1e293b 0deg); transition:1s; }
 
-/* ================== SIDEBAR ================== */
+/* CHATBOT */
+#chatToggleBtn { position:fixed; bottom:25px; right:25px; width:60px; height:60px; background:linear-gradient(45deg,#22c55e,#16a34a); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:26px; cursor:pointer; box-shadow:0 8px 20px rgba(0,0,0,0.4); z-index:1000; transition:0.3s; }
+#chatToggleBtn:hover { transform:scale(1.1); }
+#chatbot { position:fixed; bottom:100px; right:25px; width:340px; background:#0f172a; border-radius:15px; box-shadow:0 15px 40px rgba(0,0,0,0.6); overflow:hidden; display:flex; flex-direction:column; z-index:999; transition:all 0.4s ease; }
+.chat-hidden { opacity:0; transform:translateY(30px); pointer-events:none; }
+.chat-visible { opacity:1; transform:translateY(0); pointer-events:auto; }
+#chatHeader { background:#22c55e; padding:12px; color:black; font-weight:bold; }
+#chatMessages { height:250px; overflow-y:auto; padding:12px; font-size:14px; }
+#chatInputArea { display:flex; border-top:1px solid #334155; }
+#chatInput { flex:1; padding:10px; border:none; outline:none; background:#1e293b; color:white; }
+#chatInputArea button { background:#22c55e; border:none; color:black; padding:10px 15px; cursor:pointer; font-weight:bold; }
 
-.sidebar{
-height:100vh;
-width:230px;
-position:fixed;
-background:linear-gradient(180deg,#064e3b,#022c22);
-padding:20px;
-overflow:auto;
-}
-
-.sidebar a{
-display:block;
-color:#cbd5e1;
-padding:10px;
-text-decoration:none;
-border-radius:8px;
-margin-bottom:5px;
-}
-
-.sidebar a:hover{
-background:#065f46;
-color:#22c55e;
-}
-
-.content{
-margin-left:250px;
-padding:30px;
-}
-
-/* ================== CARD ================== */
-
-.card-custom{
-background:rgba(255,255,255,0.08);
-backdrop-filter:blur(14px);
-padding:20px;
-border-radius:18px;
-margin-bottom:20px;
-box-shadow:0 8px 25px rgba(0,0,0,0.3);
-}
-
-/* ================== RISK ================== */
-
-.risk-circle{
-width:150px;height:150px;border-radius:50%;
-display:flex;align-items:center;justify-content:center;
-font-weight:bold;font-size:22px;margin:auto;
-background:conic-gradient(red 0deg,#1e293b 0deg);
-transition:1s;
-}
-
-/* ================== CHATBOT ================== */
-
-/* ================= CHAT TOGGLE BUTTON ================= */
-
-#chatToggleBtn{
-position:fixed;
-bottom:25px;
-right:25px;
-width:60px;
-height:60px;
-background:linear-gradient(45deg,#22c55e,#16a34a);
-border-radius:50%;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:26px;
-cursor:pointer;
-box-shadow:0 8px 20px rgba(0,0,0,0.4);
-z-index:1000;
-transition:0.3s;
-}
-
-#chatToggleBtn:hover{
-transform:scale(1.1);
-}
-
-/* ================= CHATBOT ================= */
-
-#chatbot{
-position:fixed;
-bottom:100px;
-right:25px;
-width:340px;
-background:#0f172a;
-border-radius:15px;
-box-shadow:0 15px 40px rgba(0,0,0,0.6);
-overflow:hidden;
-display:flex;
-flex-direction:column;
-z-index:999;
-transition:all 0.4s ease;
-}
-
-.chat-hidden{
-opacity:0;
-transform:translateY(30px);
-pointer-events:none;
-}
-
-.chat-visible{
-opacity:1;
-transform:translateY(0);
-pointer-events:auto;
-}
-
-#chatHeader{
-background:#22c55e;
-padding:12px;
-color:black;
-font-weight:bold;
-}
-
-#chatMessages{
-height:250px;
-overflow-y:auto;
-padding:12px;
-font-size:14px;
-}
-
-#chatInputArea{
-display:flex;
-border-top:1px solid #334155;
-}
-#chatInputArea input{
-flex:1;
-@media(max-width:768px){
-.sidebar{position:relative;width:100%;height:auto;}
-.content{margin-left:0;}
-#chatbot{width:95%;right:2.5%;}
-}
-body{
-background:linear-gradient(to right,#052e16,#064e3b);
-color:white;
-font-family: 'Segoe UI', sans-serif;
-}
-
-/* Chat container */
-#chatbot{
-background:#0f172a;
-border-radius:20px;
-}
-
-/* Header */
-#chatHeader{
-background:linear-gradient(45deg,#22c55e,#16a34a);
-color:black;
-font-weight:bold;
-}
-
-/* Input */
-#chatInput{
-flex:1;
-padding:10px;
-border:none;
-outline:none;
-background:#1e293b;
-color:white;
-}
-
-#chatInputArea button{
-background:#22c55e;
-border:none;
-color:black;
-padding:10px 15px;
-cursor:pointer;
-}
-/* ===== MOBILE RESPONSIVE ===== */
-@media(max-width:768px){
-
-    /* Stack sidebar on top */
-    body{
-        flex-direction:column;
-    }
-
-    .sidebar{
-        width:100%;
-        height:auto;
-        position:relative;
-        padding-top:20px;
-    }
-
-    .sidebar h2{
-        font-size:20px;
-        margin-bottom:20px;
-    }
-
-    .sidebar a{
-        padding:12px 15px;
-        font-size:14px;
-    }
-
-    /* Main content full width */
-    .main{
-        margin-left:0;
-        padding:15px;
-    }
-
-    /* Stack crop cards vertically */
-    .crop-container{
-        flex-direction:column;
-        gap:15px;
-    }
-
-    .crop-link{
-        min-width:100%;
-    }
-
-    /* Adjust chat panel for smaller screens */
-    #chatPanel{
-        width:90%;
-        bottom:80px;
-        right:5%;
-        max-height:70vh;
-        padding:10px;
-    }
-
-    .chat-box{
-        height:200px; /* smaller height on mobile */
-    }
-
-    .chat-input input{
-        font-size:13px;
-        padding:8px;
-    }
-
-    .chat-input button{
-        padding:8px 10px;
-        font-size:13px;
-    }
-
-    /* Floating chat button smaller on mobile */
-    #chatButton{
-        width:50px;
-        height:50px;
-        font-size:24px;
-        bottom:15px;
-        right:15px;
-    }
-
-    /* Cards smaller padding */
-    .card{
-        padding:15px;
-    }
-}
-
-
+@media(max-width:768px) { .sidebar{position:relative;width:100%;height:auto;} .content{margin-left:0;} #chatbot{width:95%;right:2.5%;} }
 </style>
 </head>
-
 <body>
 
-<!-- ================= SIDEBAR ================= -->
-
 <div class="sidebar">
-<h4>🌾 AgriAI Pro</h4>
-
-<a href="#weather">Weather</a>
-<a href="#planning">Crop Planning</a>
-<a href="#analytics">Analytics</a>
-<a href="#terms">Terms</a>
-
-<hr>
-
-<select id="language" class="form-select mb-2" onchange="changeLanguage()">
-<option value="en">English</option>
-<option value="mr">Marathi</option>
-<option value="hi">Hindi</option>
-</select>
-
-<select id="theme" class="form-select" onchange="changeTheme()">
-<option value="dark">Dark</option>
-<option value="light">Light</option>
-<option value="green">Green Gradient</option>
-</select>
-
+  <h4>🌾 AgriAI Pro</h4>
+  <a href="dashboard.html">← Dashboard</a>
+  <a href="#weather">Weather</a>
+  <a href="#planning">Crop Planning</a>
+  <a href="#analytics">Analytics</a>
+  <hr>
+  <select id="language" class="form-select mb-2" onchange="changeLanguage()">
+    <option value="en">English</option>
+    <option value="mr">Marathi</option>
+    <option value="hi">Hindi</option>
+  </select>
+  <select id="theme" class="form-select" onchange="changeTheme()">
+    <option value="dark">Dark</option>
+    <option value="light">Light</option>
+    <option value="green">Green Gradient</option>
+  </select>
 </div>
-
-<!-- ================= CONTENT ================= -->
 
 <div class="content">
+  <h2 id="title">AI Smart Agriculture Dashboard</h2>
 
-<h2 id="title">AI Smart Agriculture Dashboard</h2>
+  <!-- WEATHER -->
+  <div id="weather" class="card-custom">
+    <h5>🌤 Live Weather</h5>
+    <p>Temperature: <span id="weatherTemp">--</span> °C &nbsp;|&nbsp; Humidity: <span id="weatherHum">--</span>%</p>
+    <small id="weatherCity" style="opacity:0.7;"></small>
+  </div>
 
-<!-- WEATHER -->
+  <!-- SENSOR -->
+  <div class="card-custom">
+    <h5>📡 IoT Live Sensor</h5>
+    <p>Soil Moisture: <span id="sensorMoist">50</span>% &nbsp;|&nbsp; Soil Temp: <span id="sensorTemp">30</span>°C</p>
+  </div>
 
-<div id="weather" class="card-custom">
-<h5>🌤 Live Weather Detection</h5>
-<p>Temperature: <span id="weatherTemp">--</span> °C</p>
-<p>Humidity: <span id="weatherHum">--</span>%</p>
+  <!-- PLANNING -->
+  <div id="planning" class="card-custom">
+    <h5>🌱 Crop Planning</h5>
+    <select id="crop" class="form-select mb-2">
+      <option>Grapes</option><option>Onion</option><option>Tomato</option><option>Wheat</option>
+    </select>
+    <input type="number" id="area" class="form-control mb-2" placeholder="Land (Acres)">
+    <input type="number" id="investment" class="form-control mb-2" placeholder="Investment (₹)">
+    <button class="btn-plan me-2" onclick="generatePlan()">
+      <span id="planBtnText">Generate AI Plan</span>
+      <span id="planSpinner" class="spinner-border spinner-border-sm d-none ms-1"></span>
+    </button>
+    <button class="btn-plan" onclick="downloadPDF()">📄 Download Report</button>
+  </div>
+
+  <!-- RESULT -->
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card-custom">
+        <h5>Prediction Summary</h5>
+        <div id="summary" style="line-height:1.8;"></div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card-custom text-center">
+        <h5>Risk Analysis</h5>
+        <div class="risk-circle" id="riskCircle">0%</div>
+        <p id="riskText" class="mt-2 fw-bold"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANALYTICS -->
+  <div id="analytics" class="card-custom">
+    <h5>📊 Growth Analytics</h5>
+    <canvas id="chart"></canvas>
+  </div>
+
+  <footer class="mt-4" style="opacity:0.6;font-size:13px;">
+    AI advisory for estimation only. Consult agricultural experts before financial decisions.
+  </footer>
 </div>
 
-<!-- SENSOR -->
-
-<div class="card-custom">
-<h5>📡 IoT Live Sensor</h5>
-<p>Soil Moisture: <span id="sensorMoist">50</span>%</p>
-<p>Soil Temp: <span id="sensorTemp">30</span>°C</p>
-</div>
-
-<!-- PLANNING -->
-
-<div id="planning" class="card-custom">
-<h5>Crop Planning</h5>
-
-<select id="crop" class="form-select mb-2">
-<option>Grapes</option>
-<option>Onion</option>
-<option>Tomato</option>
-</select>
-
-<input type="number" id="area" class="form-control mb-2" placeholder="Land (Acres)">
-<input type="number" id="investment" class="form-control mb-2" placeholder="Investment (₹)">
-
-<button onclick="generatePlan()">Generate AI Plan</button>
-<button onclick="downloadPDF()">Download Report</button>
-
-</div>
-
-<!-- RESULT -->
-
-<div class="row">
-<div class="col-md-6">
-<div class="card-custom">
-<h5>Prediction Summary</h5>
-<p id="summary"></p>
-</div>
-</div>
-
-<div class="col-md-6">
-<div class="card-custom text-center">
-<h5>Risk Analysis</h5>
-<div class="risk-circle" id="riskCircle">0%</div>
-<p id="riskText"></p>
-</div>
-</div>
-</div>
-
-<!-- ANALYTICS -->
-
-<div id="analytics" class="card-custom">
-<h5>📊 Growth Analytics</h5>
-<canvas id="chart"></canvas>
-</div>
-
-<!-- TERMS -->
-
-<footer id="terms" class="mt-5">
-<hr>
-<p>
-AI advisory system for estimation only. Consult agricultural experts before financial decisions.
-</p>
-</footer>
-
-</div>
-
-<!-- ================= CHATBOT ================= -->
-
-<!-- ================= FLOATING AI BUTTON ================= -->
-
-<div id="chatToggleBtn" onclick="toggleChatbot()">
-🤖
-</div>
-
-<!-- ================= CHATBOT ================= -->
-
+<!-- CHATBOT -->
+<div id="chatToggleBtn" onclick="toggleChatbot()">🤖</div>
 <div id="chatbot" class="chat-hidden">
-
-<div id="chatHeader">
-🌾 AgriAI Assistant
-<span style="float:right;cursor:pointer;" onclick="toggleChatbot()">✖</span>
+  <div id="chatHeader">🌾 AgriAI Assistant <span style="float:right;cursor:pointer;" onclick="toggleChatbot()">✖</span></div>
+  <div id="chatMessages"></div>
+  <div id="chatInputArea">
+    <input type="text" id="chatInput" placeholder="Ask about crop, risk, profit..." onkeydown="if(event.key==='Enter') sendMessage()">
+    <button onclick="sendMessage()">Send</button>
+  </div>
 </div>
 
-<div id="chatMessages"></div>
-
-<div id="chatInputArea">
-<input type="text" id="chatInput" placeholder="Ask about crop, risk, profit...">
-<button onclick="sendMessage()">Send</button>
-</div>
-
-</div>
-
-
-
+<script src="api.js"></script>
 <script>
-
 let chart;
 
-/* ================= SMOOTH SCROLL ================= */
-
-document.querySelectorAll('.sidebar a').forEach(anchor=>{
-anchor.addEventListener('click',function(e){
-e.preventDefault();
-document.querySelector(this.getAttribute('href'))
-.scrollIntoView({behavior:'smooth'});
-});
-});
-
-/* ================= WEATHER ================= */
-
-function loadWeather(){
-if(navigator.geolocation){
-navigator.geolocation.getCurrentPosition(pos=>{
-fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&appid=YOUR_API_KEY&units=metric`)
-.then(res=>res.json())
-.then(data=>{
-document.getElementById("weatherTemp").innerText=data.main.temp;
-document.getElementById("weatherHum").innerText=data.main.humidity;
-})
-.catch(()=>{
-document.getElementById("weatherTemp").innerText="30";
-document.getElementById("weatherHum").innerText="60";
-});
-});
-}
+// Load weather from backend
+async function loadWeather() {
+  try {
+    const data = await apiFetch('/weather?city=Nashik');
+    document.getElementById('weatherTemp').textContent = data.temp;
+    document.getElementById('weatherHum').textContent  = data.humidity;
+    document.getElementById('weatherCity').textContent = `📍 ${data.city} — ${data.description}`;
+    return data;
+  } catch { return { temp: 30, humidity: 60 }; }
 }
 
-window.onload=function(){
-loadWeather();
+// Sensor simulation
+setInterval(() => {
+  document.getElementById('sensorMoist').textContent = Math.floor(Math.random() * 35 + 35);
+  document.getElementById('sensorTemp').textContent  = Math.floor(Math.random() * 6 + 27);
+}, 4000);
 
-/* Load saved theme */
-let savedTheme=localStorage.getItem("theme");
-if(savedTheme==="light") document.body.classList.add("light-theme");
-if(savedTheme==="green") document.body.classList.add("green-theme");
+// Generate plan via backend
+async function generatePlan() {
+  const crop = document.getElementById('crop').value;
+  const area = parseFloat(document.getElementById('area').value);
+  const invest = parseFloat(document.getElementById('investment').value);
+  if (!area || !invest || area <= 0 || invest <= 0) return alert('Please enter valid land and investment values.');
+
+  const btn = document.getElementById('planBtnText');
+  const spinner = document.getElementById('planSpinner');
+  btn.textContent = 'Analyzing...';
+  spinner.classList.remove('d-none');
+
+  const weather = await loadWeather();
+
+  try {
+    const data = await apiFetch('/crop/plan', {
+      method: 'POST',
+      body: JSON.stringify({
+        crop, area, investment: invest,
+        temp: weather.temp,
+        humidity: weather.humidity,
+        soilMoisture: parseInt(document.getElementById('sensorMoist').textContent)
+      })
+    });
+
+    document.getElementById('summary').innerHTML = `
+      <b>Crop:</b> ${data.crop}<br>
+      <b>Sowing Season:</b> ${data.sowingSeason}<br>
+      <b>Expected Yield:</b> ${data.expectedYield}<br>
+      <b>Revenue:</b> ${data.revenue}<br>
+      <b>Profit:</b> ${data.profit}<br>
+      <b>Water Req:</b> ${data.waterRequirement}<br>
+      <b>Fertilizer:</b> ${data.fertilizer}<br><br>
+      <b>AI Advice:</b> ${data.advice}`;
+
+    const circle = document.getElementById('riskCircle');
+    const color = data.riskScore >= 70 ? 'red' : data.riskScore >= 40 ? 'orange' : '#22c55e';
+    circle.style.background = `conic-gradient(${color} ${data.riskScore * 3.6}deg,#1e293b 0deg)`;
+    circle.textContent = data.riskScore + '%';
+    document.getElementById('riskText').textContent = data.riskLevel + ' Risk';
+
+    updateChart(parseFloat(data.expectedYield), data.riskScore);
+  } catch {
+    document.getElementById('summary').textContent = '❌ Error connecting to backend server.';
+  } finally {
+    btn.textContent = 'Generate AI Plan';
+    spinner.classList.add('d-none');
+  }
 }
 
-/* ================= SENSOR SIMULATION ================= */
-
-setInterval(()=>{
-document.getElementById("sensorMoist").innerText=
-Math.floor(Math.random()*35+35);
-
-document.getElementById("sensorTemp").innerText=
-Math.floor(Math.random()*6+27);
-},4000);
-
-/* ================= ADVANCED PLAN ================= */
-
-function generatePlan(){
-
-let crop=document.getElementById("crop").value;
-let area=parseFloat(document.getElementById("area").value);
-let invest=parseFloat(document.getElementById("investment").value);
-
-if(area<=0 || invest<=0){
-alert("Please enter valid land and investment values.");
-return;
+function updateChart(y, r) {
+  if (chart) chart.destroy();
+  chart = new Chart(document.getElementById('chart'), {
+    type: 'line',
+    data: {
+      labels: ['Week 1','Week 2','Week 3','Week 4'],
+      datasets: [
+        { label: 'Growth Trend', data: [y*0.4,y*0.6,y*0.8,y], borderColor:'#22c55e', tension:0.4, fill:false },
+        { label: 'Risk Trend',   data: [r-10,r-5,r,r+5],       borderColor:'#ef4444', tension:0.4, fill:false }
+      ]
+    },
+    options: { responsive: true, plugins: { legend: { labels: { color: 'white' } } } }
+  });
 }
 
-/* Crop-wise logic */
-
-let yieldVal=0;
-let baseRisk=30;
-let sowing="";
-
-switch(crop){
-
-case "Grapes":
-yieldVal=area*8;
-baseRisk=50;
-sowing="October - November";
-break;
-
-case "Onion":
-yieldVal=area*10;
-baseRisk=35;
-sowing="November - December";
-break;
-
-case "Tomato":
-yieldVal=area*6;
-baseRisk=60;
-sowing="June - July";
-break;
-
+async function downloadPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFontSize(16);
+  doc.text('AgriAI Pro - Climate Smart Agriculture Report', 20, 20);
+  doc.setFontSize(12);
+  doc.text(document.getElementById('summary').innerText || 'No plan generated yet.', 20, 40);
+  doc.save('AgriAI_Report.pdf');
 }
 
-/* Weather Risk */
-
-let temp=parseFloat(document.getElementById("weatherTemp").innerText)||30;
-let humidity=parseFloat(document.getElementById("weatherHum").innerText)||60;
-
-if(temp>38) baseRisk+=20;
-if(humidity>85) baseRisk+=10;
-
-/* Sensor Risk */
-
-let moist=parseInt(document.getElementById("sensorMoist").innerText);
-
-if(moist<45) baseRisk+=15;
-if(moist>80) baseRisk+=10;
-
-/* Investment Risk */
-
-if(invest < area*15000) baseRisk+=15;
-
-/* Final Risk Limit */
-
-let risk=Math.min(baseRisk,95);
-
-/* Revenue */
-
-let marketRate=20000;
-if(crop==="Onion") marketRate=18000;
-if(crop==="Tomato") marketRate=22000;
-
-let revenue=yieldVal*marketRate;
-let profit=revenue-invest;
-
-/* Summary */
-
-document.getElementById("summary").innerHTML=
-`Crop: ${crop}<br>
-Sowing Season: ${sowing}<br>
-Expected Yield: ${yieldVal} tons<br>
-Expected Profit: ₹${profit}`;
-
-/* Risk Circle Color Logic */
-
-let circle=document.getElementById("riskCircle");
-let color="green";
-
-if(risk>=70) color="red";
-else if(risk>=40) color="orange";
-
-circle.style.background=
-`conic-gradient(${color} ${risk*3.6}deg,#1e293b 0deg)`;
-
-circle.innerText=risk+"%";
-
-document.getElementById("riskText").innerText=
-risk<40?"Low Risk":
-risk<70?"Moderate Risk":"High Risk";
-
-/* Detailed AI Advisory */
-
-let advice="";
-
-if(risk<40){
-advice="Conditions are stable. Maintain irrigation and pest monitoring.";
-}
-else if(risk<70){
-advice="Moderate risk detected. Improve soil moisture and monitor weather.";
-}
-else{
-advice="High risk! Increase irrigation, use protective measures and reduce losses.";
+function toggleChatbot() {
+  const bot = document.getElementById('chatbot');
+  bot.classList.toggle('chat-hidden');
+  bot.classList.toggle('chat-visible');
 }
 
-document.getElementById("summary").innerHTML+=`<br><br><b>AI Advice:</b> ${advice}`;
+async function sendMessage() {
+  const input = document.getElementById('chatInput').value.trim();
+  const area = document.getElementById('chatMessages');
+  if (!input) return;
 
-updateChart(yieldVal,risk);
+  area.innerHTML += `<div style="text-align:right;margin-bottom:8px;"><span style="background:#22c55e;color:black;padding:8px 12px;border-radius:15px;display:inline-block;">${input}</span></div>`;
+  area.innerHTML += `<div id="typing" style="color:#94a3b8;margin-bottom:10px;">AI is typing...</div>`;
+  document.getElementById('chatInput').value = '';
+  area.scrollTop = area.scrollHeight;
+
+  try {
+    const data = await apiFetch('/chat', { method: 'POST', body: JSON.stringify({ message: input }) });
+    document.getElementById('typing')?.remove();
+    area.innerHTML += `<div style="text-align:left;margin-bottom:10px;"><span style="background:#1e293b;color:#22c55e;padding:8px 12px;border-radius:15px;display:inline-block;">${data.reply}</span></div>`;
+  } catch {
+    document.getElementById('typing')?.remove();
+    area.innerHTML += `<div style="color:red;">Connection error. Check backend server.</div>`;
+  }
+  area.scrollTop = area.scrollHeight;
 }
 
-/* ================= ADVANCED CHART ================= */
-
-function updateChart(y,r){
-
-if(chart) chart.destroy();
-
-chart=new Chart(document.getElementById("chart"),{
-type:"line",
-data:{
-labels:["Week 1","Week 2","Week 3","Week 4"],
-datasets:[
-{
-label:"Growth Trend",
-data:[y*0.4,y*0.6,y*0.8,y],
-borderColor:"#22c55e",
-tension:0.4,
-fill:false
-},
-{
-label:"Risk Trend",
-data:[r-10,r-5,r,r+5],
-borderColor:"#ef4444",
-tension:0.4,
-fill:false
-}
-]
-}
-});
+function changeLanguage() {
+  const lang = document.getElementById('language').value;
+  const titles = { en: 'AI Smart Agriculture Dashboard', mr: 'AI स्मार्ट शेती डॅशबोर्ड', hi: 'AI स्मार्ट कृषि डैशबोर्ड' };
+  document.getElementById('title').textContent = titles[lang];
 }
 
-/* ================= PDF ================= */
-
-async function downloadPDF(){
-const { jsPDF } = window.jspdf;
-let doc=new jsPDF();
-
-doc.text("AgriAI Pro - Climate Smart Agriculture Report",20,20);
-doc.text(document.getElementById("summary").innerText,20,40);
-
-doc.save("AgriAI_Report.pdf");
+function changeTheme() {
+  const theme = document.getElementById('theme').value;
+  document.body.classList.remove('light-theme','green-theme');
+  if (theme === 'light') document.body.classList.add('light-theme');
+  if (theme === 'green') document.body.classList.add('green-theme');
+  localStorage.setItem('theme', theme);
 }
 
-/* ================= LANGUAGE ================= */
-
-function changeLanguage(){
-let lang=document.getElementById("language").value;
-
-if(lang==="mr"){
-document.getElementById("title").innerText="AI स्मार्ट शेती डॅशबोर्ड";
-}
-else if(lang==="hi"){
-document.getElementById("title").innerText="AI स्मार्ट कृषि डैशबोर्ड";
-}
-else{
-document.getElementById("title").innerText="AI Smart Agriculture Dashboard";
-}
-}
-
-/* ================= THEME ================= */
-
-function changeTheme(){
-
-let theme=document.getElementById("theme").value;
-
-document.body.classList.remove("light-theme","green-theme");
-
-if(theme==="light"){
-document.body.classList.add("light-theme");
-localStorage.setItem("theme","light");
-}
-else if(theme==="green"){
-document.body.classList.add("green-theme");
-localStorage.setItem("theme","green");
-}
-else{
-localStorage.setItem("theme","dark");
-}
-}
-
-/* ================= CHATBOT TOGGLE ================= */
-
-function toggleChatbot(){
-
-let chatbot=document.getElementById("chatbot");
-
-if(chatbot.classList.contains("chat-hidden")){
-chatbot.classList.remove("chat-hidden");
-chatbot.classList.add("chat-visible");
-}
-else{
-chatbot.classList.remove("chat-visible");
-chatbot.classList.add("chat-hidden");
-}
-
-}async function sendMessage(){
-
-let input=document.getElementById("chatInput").value;
-let area=document.getElementById("chatMessages");
-
-if(!input) return;
-
-area.innerHTML+=`<div><b>You:</b> ${input}</div>`;
-area.innerHTML+=`<div id="typing" style="color:#22c55e;">AI is typing...</div>`;
-
-document.getElementById("chatInput").value="";
-area.scrollTop=area.scrollHeight;
-
-try{
-
-let response = await fetch("https://api.openai.com/v1/chat/completions",{
-method:"POST",
-headers:{
-"Content-Type":"application/json",
-"Authorization":"Bearer YOUR_API_KEY"
-},
-body:JSON.stringify({
-model:"gpt-4o-mini",
-messages:[
-{
-role:"system",
-content:"You are an agriculture expert AI assistant helping farmers with crops, soil, irrigation, fertilizer, pest control, weather, and profit guidance."
-},
-{
-role:"user",
-content:input
-}
-]
-})
-});
-
-let data=await response.json();
-document.getElementById("typing").remove();
-
-let reply=data.choices[0].message.content;
-
-area.innerHTML+=`<div style="color:#22c55e;"><b>AI:</b> ${reply}</div>`;
-area.scrollTop=area.scrollHeight;
-
-}catch(error){
-
-document.getElementById("typing").remove();
-area.innerHTML+=`<div style="color:red;">Error connecting to AI</div>`;
-
-}
-
-}
-async function sendMessage(){
-
-let input=document.getElementById("chatInput").value.trim();
-let area=document.getElementById("chatMessages");
-
-if(!input) return;
-
-area.innerHTML += `
-<div style="text-align:right;margin-bottom:8px;">
-<span style="background:#22c55e;color:black;padding:8px 12px;border-radius:15px;display:inline-block;">
-${input}
-</span>
-</div>
-`;
-
-area.innerHTML += `
-<div id="typing" style="color:#94a3b8;margin-bottom:10px;">
-AI is typing...
-</div>
-`;
-
-document.getElementById("chatInput").value="";
-area.scrollTop=area.scrollHeight;
-
-try{
-
-let response = await fetch("https://api.openai.com/v1/chat/completions",{
-method:"POST",
-headers:{
-"Content-Type":"application/json",
-"Authorization":"Bearer sk-PASTE-YOUR-REAL-KEY-HERE"
-},
-body:JSON.stringify({
-model:"gpt-4o-mini",
-messages:[
-{
-role:"system",
-content:"You are a professional agriculture expert helping farmers with crop selection, soil health, irrigation, pest control, fertilizers, and profit optimization. Give clear, simple answers."
-},
-{
-role:"user",
-content:input
-}
-]
-})
-});
-
-let data = await response.json();
-
-document.getElementById("typing").remove();
-
-if(data.error){
-area.innerHTML += `
-<div style="color:red;">${data.error.message}</div>
-`;
-return;
-}
-
-let reply = data.choices[0].message.content;
-
-area.innerHTML += `
-<div style="text-align:left;margin-bottom:10px;">
-<span style="background:#1e293b;color:#22c55e;padding:8px 12px;border-radius:15px;display:inline-block;">
-${reply}
-</span>
-</div>
-`;
-
-area.scrollTop=area.scrollHeight;
-
-}catch(error){
-
-document.getElementById("typing").remove();
-
-area.innerHTML += `
-<div style="color:red;">Connection error. Use backend server.</div>
-`;
-
-}
-}
-
+window.onload = () => {
+  loadWeather();
+  const saved = localStorage.getItem('theme');
+  if (saved === 'light') document.body.classList.add('light-theme');
+  if (saved === 'green') document.body.classList.add('green-theme');
+};
 </script>
 </body>
 </html>

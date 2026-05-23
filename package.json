@@ -1,0 +1,13 @@
+{
+  "name": "kumbh-mela-climate-smart-agriculture",
+  "version": "1.0.0",
+  "description": "AI-Powered Climate-Smart Agriculture Platform for Maharashtra Farmers",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "install-backend": "cd backend && npm install"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

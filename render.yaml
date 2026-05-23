@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: kumbh-agri-smart
+    env: node
+    buildCommand: cd backend && npm install
+    startCommand: node backend/server.js
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: OPENWEATHER_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false

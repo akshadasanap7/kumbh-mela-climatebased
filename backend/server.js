@@ -21,7 +21,7 @@ app.use('/api/crop',    require('./routes/crop'));
 app.get('/api/health', (req, res) => res.json({ status: 'OK', project: 'Kumbh Mela Climate-Smart Agriculture', version: '1.0.0' }));
 
 // Fallback to index.html for SPA
-app.get('*', (req, res) => {
+app.get('*path', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'index.html'));
 });
 
